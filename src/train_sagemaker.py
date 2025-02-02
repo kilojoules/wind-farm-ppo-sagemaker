@@ -75,12 +75,12 @@ if __name__ == '__main__':
                                 args.dt_env, args.power_avg, curriculum_steps, pure_similarity_steps) for _ in range(args.n_env)])
 
     model = PPO(WindFarmPolicy, env, 
-                n_steps=512,         # Frequent updates
-                batch_size=256,       # Smaller updates per batch
-                n_epochs=15,         # Reuse data more
+                n_steps=512,
+                batch_size=256,
+                n_epochs=15,
                 ent_coef=args.ent_coef, 
                 learning_rate=args.learning_rate, 
-                clip_range=0.3,
+                #clip_range=0.2,
                 policy_kwargs={
                     "n_features": temp_env._get_num_raw_features(),
                     "window_size": args.lookback_window
