@@ -1,0 +1,45 @@
+[project]
+name = "windfarm-ppo"  # Changed from DTUWindGym since this is your project
+version = "0.0.1"
+requires-python = ">=3.7, <3.11"
+dependencies = [
+  "tensorflow",
+  "wandb",
+]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.pypi-dependencies]
+boto3 = "*"
+awscli = "*"
+sagemaker = "*"
+# Remove the DTUWindGym dependency since we'll clone it
+
+[tool.pixi.dependencies]
+hdf5 = "*"
+h5py = "*"
+netcdf4 = "*"
+numpy = "<2"
+pre-commit = ">=4.0.1,<5"
+pytest = ">=8.3.4,<9"
+pytest-cov = ">=6.0.0,<7"
+ffmpeg = ">=7.1.0,<8"
+
+[tool.pixi.tasks]
+configure-aws = "aws configure"
+train = "python scripts/training_job.py"
+build-push = "bash scripts/build_push.sh"
+clone-dtu = """
+    mkdir -p DTUWindGym
+    git clone git@gitlab.windenergy.dtu.dk:path/to/DTUWindGym.git DTUWindGym
+    cd DTUWindGym && pip install -e .
+"""
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]  

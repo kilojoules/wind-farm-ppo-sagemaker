@@ -1,0 +1,8 @@
+{
+    "dt_env": 1,
+    "power_avg": 30,
+    "learning_rate": 1e-5,
+    "n_steps": 2048,
+    "ent_coef": 0.01,
+    "lookback_window": 100
+}
