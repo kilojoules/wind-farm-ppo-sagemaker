@@ -5,9 +5,8 @@ set -e
 # Clone DTUWindGym if it doesn't exist
 if [ ! -d "DTUWindGym" ]; then
     echo "Cloning DTUWindGym..."
-    mkdir -p DTUWindGym
-    git clone git@gitlab.windenergy.dtu.dk:path/to/DTUWindGym.git DTUWindGym
-    cd DTUWindGym
+    git clone git@gitlab.windenergy.dtu.dk:manils/dtu_wind_gym.git
+    cd dtu_wind_gym
     pip install -e .
     cd ..
 fi
