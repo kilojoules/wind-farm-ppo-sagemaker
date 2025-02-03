@@ -14,6 +14,11 @@ from DTUWindGym.envs.WindFarmEnv.Agents import PyWakeAgent
 from py_wake.examples.data.hornsrev1 import V80 as wind_turbine
 import argparse
 
+# Device selection
+device = torch.device("cuda" if torch.cuda.is_available() else 
+                     "mps" if torch.backends.mps.is_available() else 
+                     "cpu")
+print(f"Using device: {device}")
 
 class WindFarmMonitor(BaseCallback):
     def __init__(self, verbose=0):
@@ -96,8 +101,8 @@ class WindFarmFeatureExtractor(nn.Module):
         # LSTM for temporal processing
         self.lstm = nn.LSTM(
             input_size=n_features,
-            hidden_size=256,
-            num_layers=5,
+            hidden_size=32,
+            num_layers=2,
             batch_first=True,
             dropout=0.1
         )
@@ -137,7 +142,7 @@ class WindFarmMLPExtractor(nn.Module):
         
         # Calculate feature dimension based on window size
         if window_size >= 3:
-            feature_dim = 256 + n_features * 4
+            feature_dim = 32 + n_features * 4
         elif window_size > 1:
             feature_dim = n_features * 4
         else:
@@ -146,18 +151,18 @@ class WindFarmMLPExtractor(nn.Module):
         self.policy_net = nn.Sequential(
             nn.Linear(feature_dim, 256),
             nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(256, 32),
             nn.ReLU(),
-            nn.Linear(64, 32),
+            nn.Linear(32, 16),
             nn.ReLU()
         )
         
         self.value_net = nn.Sequential(
             nn.Linear(feature_dim, 256),
             nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(256, 32),
             nn.ReLU(),
-            nn.Linear(64, 32),
+            nn.Linear(32, 8),
             nn.ReLU()
         )
         
@@ -175,8 +180,8 @@ class WindFarmMLPExtractor(nn.Module):
                 if layer.bias is not None:
                     nn.init.zeros_(layer.bias)
         
-        self.latent_dim_pi = 32
-        self.latent_dim_vf = 32
+        self.latent_dim_pi = 16
+        self.latent_dim_vf = 8
 
     def forward(self, obs):
         features = self.feature_extractor(obs)
@@ -283,15 +288,11 @@ def parse_args():
     parser.add_argument("--lookback_window", type=int, required=True)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--n_env", type=int, default=2)
-    parser.add_argument("--train_steps", type=int, default=1000000)
+    parser.add_argument("--train_steps", type=int, default=50000)
     parser.add_argument("--yaml_path", type=str, required=True)
     parser.add_argument("--turbbox_path", type=str, default="Hipersim_mann_l5.0_ae1.0000_g0.0_h0_128x128x128_3.000x3.00x3.00_s0001.nc")
     parser.add_argument("--learning_rate", type=float, default=1e-6)
     parser.add_argument("--n_steps", type=int, default=2048)
     parser.add_argument("--ent_coef", type=float, default=0.01)
-
-    # SageMaker-specific arguments
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     return parser.parse_args()
 
