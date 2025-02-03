@@ -1,22 +1,22 @@
-# scripts/training_job.py
 import os
 import boto3
 from sagemaker.pytorch import PyTorch
-from dotenv import load_dotenv
 
-load_dotenv()
+# Get AWS account ID
+sts = boto3.client('sts')
+ACCOUNT_ID = sts.get_caller_identity()['Account']
 
-account_id = os.getenv('AWS_ACCOUNT_ID')
-region = os.getenv('AWS_DEFAULT_REGION')
-bucket = f'windfarm-ppo-{account_id}'
+# Get region
+session = boto3.session.Session()
+REGION = session.region_name
 
 estimator = PyTorch(
     entry_point='train_sagemaker.py',
     source_dir='src',
-    image_uri=f'{account_id}.dkr.ecr.{region}.amazonaws.com/windfarm-ppo:latest',
-    role=f'arn:aws:iam::{account_id}:role/SageMakerRole',
+    image_uri=f'{ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/windfarm-ppo:latest',
+    role=f'arn:aws:iam::{ACCOUNT_ID}:role/SageMakerRole',
     instance_count=1,
-    instance_type='ml.g4dn.xlarge',
+    instance_type='ml.t3.medium',
     hyperparameters={
         'dt_env': 1,
         'power_avg': 30,
@@ -24,7 +24,10 @@ estimator = PyTorch(
         'learning_rate': 1e-5
     },
     use_spot_instances=True,
-    max_wait=3600*8
+    max_wait=3600*8,
+    environment={
+        'WANDB_PROJECT': 'WindFarm_Curriculum'
+    }
 )
 
-estimator.fit({'training': f's3://{bucket}/input'})
+estimator.fit()
