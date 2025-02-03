@@ -15,7 +15,7 @@ platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 boto3 = "*"
 awscli = "*"
 sagemaker = "*"
-# Remove the DTUWindGym dependency since we'll clone it
+tabulate = "*"
 
 [tool.pixi.dependencies]
 hdf5 = "*"
